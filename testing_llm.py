@@ -15,9 +15,14 @@ tokenizer = AutoTokenizer.from_pretrained(
 )
 tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})
 
-inputs = tokenizer("Simple 2 layer neural network in PyTorch ", return_tensors="pt", max_length=2048, truncation=True, padding='max_length')
+inputs = tokenizer("Simple 2 layer neural network in PyTorch. I start by importing torch and then defining a class with nn.Module", return_tensors="pt", max_length=512, truncation=True, padding='max_length')
+print(inputs)
+# with torch.no_grad():
+#     print(inputs)
+#     tokens = model(inputs).logits
 tokens = model.generate(**inputs, max_new_tokens=512)
-print(tokenizer.decode(tokens[0]))
+print(tokens.shape)
+print(tokenizer.decode(tokens[0], skip_special_tokens=True))
 
 
 # currently returns all <|endoftext|> so definitely a bug somewhere

@@ -54,15 +54,16 @@ class CodeDataset(Dataset):
     def __getitem__(self, idx):
         code_prompt = self.code_samples[idx]['docstring']
         code_sample = self.code_samples[idx]['function']
+        # NOTE: originally had this wrong, prompt is input and sample function is label!!!
         sample = tokenizer.encode(
-            code_sample,
+            code_prompt,
             return_tensors='pt',
             max_length=args.max_len,
             truncation=True,
             padding='max_length'
         )
         label = tokenizer.encode(
-            code_prompt,
+            code_sample,
             return_tensors='pt',
             max_length=args.max_len,
             truncation=True,
@@ -91,6 +92,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 print(device)
 for epoch in range(args.epochs):
+    early_stop = 256
+    ctr = 0
     for inputs, labels in dataloader:
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
@@ -102,3 +105,9 @@ for epoch in range(args.epochs):
         optimizer.step()
         print(loss.item())
         torch.save(model.state_dict(), "tuned_models\\finetuned.bin")
+        ctr += 1
+        assert(ctr < early_stop)
+
+# outputs = [batch, max_len, embedding_dim]
+# labels = [batch, max_len]
+# reshape turns into [batch*max_len, embedding_dim] and [batch*max_len]
