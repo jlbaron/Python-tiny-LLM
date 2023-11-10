@@ -29,6 +29,7 @@ model = GPTNeoXForCausalLM.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained(
   "EleutherAI/pythia-410m",
+    padding_side='left',
 )
 tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})
 
@@ -63,6 +64,7 @@ class CodeDataset(Dataset):
             padding='max_length'
         )
         label = tokenizer.encode(
+            code_prompt,
             code_sample,
             return_tensors='pt',
             max_length=args.max_len,
@@ -92,12 +94,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 print(device)
 for epoch in range(args.epochs):
-    early_stop = 256
+    early_stop = 1024
     ctr = 0
     for inputs, labels in dataloader:
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
-        outputs = model(inputs).logits
+        outputs = model(inputs)
+        outputs = outputs.logits
         outputs = outputs.reshape(-1, outputs.shape[-1])
         labels = labels.reshape(-1)
         loss = criterion(outputs, labels)

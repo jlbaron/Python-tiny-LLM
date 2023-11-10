@@ -12,16 +12,15 @@ model.load_state_dict(torch.load('tuned_models\\finetuned.bin'))
 
 tokenizer = AutoTokenizer.from_pretrained(
   "EleutherAI/pythia-410m",
+  padding_side='left',
 )
 tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})
 
-inputs = tokenizer("Simple 2 layer neural network in PyTorch. I start by importing torch and then defining a class with nn.Module", return_tensors="pt", max_length=512, truncation=True, padding='max_length')
-print(inputs)
+inputs = tokenizer("The following python code sorts 2 lists \n Each list contains int and is no more than 1000 elements long \n We will use numpy operations for extra efficiency: ", return_tensors="pt", max_length=512, truncation=True, padding='max_length')
 # with torch.no_grad():
-#     print(inputs)
 #     tokens = model(inputs).logits
-tokens = model.generate(**inputs, max_new_tokens=512)
-print(tokens.shape)
+tokens = model.generate(**inputs, max_new_tokens=1024)
+print(tokens)
 print(tokenizer.decode(tokens[0], skip_special_tokens=True))
 
 
